@@ -1,4 +1,4 @@
-use gpui::{Pixels};
+use gpui::Pixels;
 
 #[derive(Clone, Debug)]
 pub enum ImageCrop {
@@ -70,15 +70,24 @@ impl PartialEq for ImageCrop {
             (ImageCrop::Uninitialized, _) => false,
             (_, ImageCrop::Uninitialized) => false,
             (
-                ImageCrop::Cropped { crop_x, crop_y, width, height },
-                ImageCrop::Cropped { crop_x: rhs_crop_x, crop_y: rhs_crop_y, width: rhs_width, height: rhs_height },
+                ImageCrop::Cropped {
+                    crop_x,
+                    crop_y,
+                    width,
+                    height,
+                },
+                ImageCrop::Cropped {
+                    crop_x: rhs_crop_x,
+                    crop_y: rhs_crop_y,
+                    width: rhs_width,
+                    height: rhs_height,
+                },
             ) => {
                 crop_x == rhs_crop_x
                     && crop_y == rhs_crop_y
                     && width == rhs_width
                     && height == rhs_height
-            },
+            }
         }
     }
 }
-

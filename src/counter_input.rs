@@ -1,9 +1,9 @@
-use gpui::{div, prelude::*, px, Context, Entity, EventEmitter, Subscription, Window};
+use gpui::{Context, Entity, Subscription, Window, div, prelude::*, px};
 use gpui_component::Sizable;
 use gpui_component::input::{InputEvent, InputState, NumberInput, NumberInputEvent, StepAction};
 
 use crate::image_crop::{ImageCrop, InitializedImageCrop};
- 
+
 pub struct CounterView {
     pub counter_input: Entity<InputState>,
     counter_value: i32,
@@ -12,11 +12,12 @@ pub struct CounterView {
 
 impl CounterView {
     pub fn new(window: &mut Window, cx: &mut Context<Self>, default_value: i32) -> Self {
-        let counter_input = cx.new(|cx|
-            InputState::new(window, cx)
-                .placeholder("Count")
-                .default_value(default_value.to_string())
-                // .pattern(Regex::new(r"^-?\d+$").unwrap()) // Allow negative integers
+        let counter_input = cx.new(
+            |cx| {
+                InputState::new(window, cx)
+                    .placeholder("Count")
+                    .default_value(default_value.to_string())
+            }, // .pattern(Regex::new(r"^-?\d+$").unwrap()) // Allow negative integers
         );
 
         let _subscriptions = vec![
@@ -44,17 +45,22 @@ impl CounterView {
         image_crop: Entity<ImageCrop>,
         mut on_event: impl FnMut(u32, InitializedImageCrop, &mut Context<T>) + 'static,
     ) {
-        cx.subscribe_in(&self.counter_input, window, move |_, input, evt: &InputEvent, _, cx| {
-            match evt {
+        cx.subscribe_in(
+            &self.counter_input,
+            window,
+            move |_, input, evt: &InputEvent, _, cx| match evt {
                 InputEvent::Change => {
                     let value = input.read(cx).value().parse::<u32>();
-                    if let (Ok(value), Some(initialized_image_crop)) = (value, image_crop.read(cx).to_initialized()) {
+                    if let (Ok(value), Some(initialized_image_crop)) =
+                        (value, image_crop.read(cx).to_initialized())
+                    {
                         on_event(value, initialized_image_crop, cx);
                     }
-                },
-                _ => {},
-            }
-        }).detach();
+                }
+                _ => {}
+            },
+        )
+        .detach();
     }
 
     fn on_input_event(
@@ -70,8 +76,8 @@ impl CounterView {
                 if let Ok(value) = text.parse::<i32>() {
                     self.counter_value = value;
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 
@@ -111,7 +117,6 @@ pub fn number_field(label: &str, state: Entity<InputState>) -> impl IntoElement 
                 .flex()
                 .flex_row()
                 .w(px(100.0))
-                .child(NumberInput::new(&state).small())
+                .child(NumberInput::new(&state).small()),
         )
 }
-

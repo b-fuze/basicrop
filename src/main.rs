@@ -1,16 +1,17 @@
+mod basicrop;
+mod basicrop_state;
 mod counter_input;
 mod image_crop;
-mod selection_canvas;
-mod basicrop_state;
-mod misc;
 mod main_view;
-mod basicrop;
+mod misc;
+mod selection_canvas;
 
 use basicrop::Basicrop;
 use std::path::PathBuf;
 // use std::time::{SystemTime, UNIX_EPOCH};
 use gpui::{
-    bounds, canvas, div, hsla, img, percentage, point, prelude::*, px, quad, rgb, rgba, size, App, Application, BorderStyle, Bounds, Context, DragMoveEvent, Edges, Entity, ImageAssetLoader, ImageSource, ObjectFit, PathBuilder, Pixels, Point, Position, RenderImage, Resource, SharedString, Size, Subscription, TitlebarOptions, Window, WindowBounds, WindowDecorations, WindowOptions
+    App, Application, Bounds, Size, TitlebarOptions, WindowBounds, WindowDecorations,
+    WindowOptions, hsla, prelude::*, px, size,
 };
 use gpui_component::*;
 
@@ -21,7 +22,7 @@ fn main() {
         None => {
             eprintln!("error: missing input image");
             std::process::exit(1);
-        },
+        }
     };
     let dest_image_path: PathBuf = match args.next() {
         Some(path) => path.into(),
@@ -30,7 +31,7 @@ fn main() {
             let ext_index = orig_path.rfind('.').unwrap_or(orig_path.len());
             orig_path.insert_str(ext_index, ".cropped");
             PathBuf::from(orig_path)
-        },
+        }
     };
 
     let app = Application::new().with_assets(gpui_component_assets::Assets);

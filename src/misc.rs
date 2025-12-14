@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use gpui::{Pixels, Point, RenderImage};
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub enum LoadingImage {
@@ -21,4 +21,3 @@ pub enum CroppingMousePosition {
     Initial(Point<Pixels>),
     Moved(Point<Pixels>),
 }
-

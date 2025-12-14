@@ -1,8 +1,8 @@
 use crate::counter_input::CounterView;
 use crate::image_crop::ImageCrop;
 use crate::misc::CroppingMousePosition;
-use std::path::PathBuf;
 use gpui::{Entity, Pixels, Point, Resource};
+use std::path::PathBuf;
 
 pub struct BasicropState {
     pub crop_x: Entity<CounterView>,
@@ -17,4 +17,3 @@ pub struct BasicropState {
     pub dest_image_path: Entity<PathBuf>,
     pub image_saved_notification: Entity<()>,
 }
-

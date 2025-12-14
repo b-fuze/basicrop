@@ -1,10 +1,10 @@
-use crate::{basicrop_state::BasicropState, misc::CroppingMousePosition};
 use crate::counter_input::number_field;
 use crate::misc::LoadingImage;
 use crate::selection_canvas::selection_canvas;
-use gpui::{div, img, prelude::*, px, rgb, Context, Edges, IntoElement, Styled, ObjectFit};
+use crate::{basicrop_state::BasicropState, misc::CroppingMousePosition};
+use gpui::{Context, Edges, IntoElement, ObjectFit, Styled, div, img, prelude::*, px, rgb};
 use gpui_component::IconName;
-use gpui_component::{button::Button, StyledExt};
+use gpui_component::{StyledExt, button::Button};
 
 pub fn render_main_view<T>(
     state: &mut BasicropState,
@@ -208,7 +208,7 @@ pub fn render_main_view<T>(
                             move |_, _, cx| {
                                 if let (Some(final_crop), LoadingImage::Image(image)) = (image_crop.read(cx).to_final(), &image_asset) {
                                     let image_size = image.size(0);
-                                    let mut cropped_image_buf: Option<image::ImageBuffer<image::Rgba<_>, Vec<_>>> = image::ImageBuffer::from_raw(
+                                    let cropped_image_buf: Option<image::ImageBuffer<image::Rgba<_>, Vec<_>>> = image::ImageBuffer::from_raw(
                                         image_size.width.into(),
                                         image_size.height.into(),
                                         image.as_bytes(0).unwrap().to_vec(),
