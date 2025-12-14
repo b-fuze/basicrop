@@ -1,0 +1,11 @@
+[package]
+name = "basicrop"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gpui = "0.2.2"
+image = "0.25.1" # Should be the same one used by GPUI
+gpui-component = "0.5.0-preview1"
+# Optional, for default bundled assets
+gpui-component-assets = "0.5.0-preview1"
