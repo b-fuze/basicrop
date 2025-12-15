@@ -217,10 +217,10 @@ pub fn render_main_view<T>(
                                 let image_crop_logged = image_crop.read(cx).clone().to_final().unwrap();
                                 println!(
                                     "info: cropping image with inputs: x: {}, y: {}, dimensions: {}x{}",
-                                    image_crop_logged.crop_x, 
-                                    image_crop_logged.crop_y, 
-                                    image_crop_logged.width, 
-                                    image_crop_logged.height, 
+                                    image_crop_logged.crop_x,
+                                    image_crop_logged.crop_y,
+                                    image_crop_logged.width,
+                                    image_crop_logged.height,
                                 );
 
                                 if let (Some(final_crop), LoadingImage::Image(image)) = (image_crop.read(cx).to_final(), &image_asset) {
