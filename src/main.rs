@@ -15,16 +15,44 @@ use gpui::{
 };
 use gpui_component::*;
 
+const USAGE: &str =
+r#"USAGE
+    basicrop [-h|--help]
+             source-image [output-image]
+
+DESCRIPTION
+    basicrop is a basic program to crop images. It will open
+    the source-image in a window that allows cropping by
+    clicking and dragging anywhere on the image. After clicking
+    the "Ok" button it will save the cropped image to
+    output-image if provided, or to the same path as
+    source-image with .cropped appended to the file name before
+    the file extension.
+
+    Supported image formats:
+      AVIF  BMP      Farbfeld
+      GIF   HDR      ICO
+      JPEG  OpenEXR  PNG
+      PNM   QOI      TGA
+      TIFF  WebP
+"#;
+
 fn main() {
-    let mut args = std::env::args();
-    let image_path: PathBuf = match args.nth(1) {
-        Some(path) => path.into(),
-        None => {
-            eprintln!("error: missing input image");
-            std::process::exit(1);
-        }
-    };
-    let dest_image_path: PathBuf = match args.next() {
+    let mut args: Vec<String> = std::env::args().skip(1).take(2).collect();
+
+    if args.len() < 1 {
+        eprintln!("error: missing source-image\n");
+        eprint!("{USAGE}");
+        std::process::exit(1);
+    }
+
+    if args[0] == "-h" || args[0] == "--help" {
+        eprint!("{USAGE}");
+        std::process::exit(0);
+    }
+
+    let image_path = PathBuf::from(args.remove(0));
+    let dest_image_path: PathBuf = match args.into_iter().next() {
         Some(path) => path.into(),
         None => {
             let mut orig_path = image_path.to_str().unwrap().to_owned();
