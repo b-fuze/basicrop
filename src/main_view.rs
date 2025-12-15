@@ -19,10 +19,10 @@ pub fn render_main_view<T>(
         .items_center()
         .justify_start()
         .paddings(Edges {
-            top: px(16.0),
-            bottom: px(16.0),
-            left: px(0.0),
-            right: px(0.0),
+            top: px(16.),
+            bottom: px(16.),
+            left: px(0.),
+            right: px(0.),
         })
         .child(number_field("X:", state.crop_x.read(cx).get_state()))
         .child(number_field("Y:", state.crop_y.read(cx).get_state()))
@@ -51,12 +51,12 @@ pub fn render_main_view<T>(
                 .w_full()
                 // .gap_full()
                 .paddings(Edges {
-                    top: px(0.0),
-                    bottom: px(0.0),
-                    left: px(16.0),
-                    right: px(16.0),
+                    top: px(0.),
+                    bottom: px(0.),
+                    left: px(16.),
+                    right: px(16.),
                 })
-                .border_b(px(1.0))
+                .border_b(px(1.))
                 .border_color(rgb(0xd0d0d0))
                 .child(fields)
                 .child(
@@ -64,7 +64,7 @@ pub fn render_main_view<T>(
                         .flex()
                         .flex_row()
                         .justify_end()
-                        .w(px(100.0))
+                        .w(px(100.))
                         .child(
                             Button::new("reset-btn")
                                 .label("Reset")
@@ -178,10 +178,10 @@ pub fn render_main_view<T>(
                 .h_16()
                 .justify_end()
                 .paddings(Edges {
-                    top: px(12.0),
-                    bottom: px(12.0),
-                    left: px(16.0),
-                    right: px(16.0),
+                    top: px(12.),
+                    bottom: px(12.),
+                    left: px(16.),
+                    right: px(16.),
                 })
                 .gap_4()
                 .child(

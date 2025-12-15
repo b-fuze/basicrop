@@ -40,7 +40,7 @@ fn main() {
         gpui_component::init(cx);
         Theme::global_mut(cx).window_border = hsla(0., 0., 0., 0.6);
 
-        let bounds = Bounds::centered(None, size(px(500.), px(500.0)), cx);
+        let bounds = Bounds::centered(None, size(px(500.), px(500.)), cx);
         cx.open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
@@ -48,8 +48,8 @@ fn main() {
                 is_minimizable: true,
                 window_decorations: Some(WindowDecorations::Server),
                 window_min_size: Some(Size {
-                    width: px(750.0),
-                    height: px(500.0),
+                    width: px(750.),
+                    height: px(500.),
                 }),
                 titlebar: Some(TitlebarOptions {
                     title: Some("Basicrop".into()),

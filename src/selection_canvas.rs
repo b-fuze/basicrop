@@ -34,27 +34,23 @@ pub fn selection_canvas(
 
             // Calculate current location of image in viewport relative to
             // the canvas bounds
-            let image_width = u64::from(image_size.width);
-            let image_height = u64::from(image_size.height);
-            let viewport_aspect_ratio = bounds.size.width.to_f64() / bounds.size.height.to_f64();
-            let image_aspect_ratio = (image_width as f64) / (image_height as f64);
+            let image_width = i32::from(image_size.width) as f32;
+            let image_height = i32::from(image_size.height) as f32;
+            let viewport_aspect_ratio = bounds.size.width / bounds.size.height;
+            let image_aspect_ratio = image_width / image_height;
             let image_visible_scale = if viewport_aspect_ratio > image_aspect_ratio {
-                bounds.size.height.to_f64() / u64::from(image_size.height) as f64
+                f32::from(bounds.size.height / image_height)
             } else {
-                bounds.size.width.to_f64() / u64::from(image_size.width) as f64
+                f32::from(bounds.size.width / image_width)
             };
-            let image_visible_scale_inverse = 1.0 / image_visible_scale;
-            let image_visible_width = (image_width as f64) * image_visible_scale;
-            let image_visible_height = (image_height as f64) * image_visible_scale;
+            let image_visible_scale_inverse = 1. / image_visible_scale;
+            let image_visible_width = px(image_width * image_visible_scale);
+            let image_visible_height = px(image_height * image_visible_scale);
 
             // We need this because only the canvas' height might not match the
             // image's height, but the width will always match
-            let bounds_padding_x = (image_visible_width.max(bounds.size.width.to_f64())
-                - image_visible_width.min(bounds.size.width.to_f64()))
-                / 2.0;
-            let bounds_padding_y = (image_visible_height.max(bounds.size.height.to_f64())
-                - image_visible_height.min(bounds.size.height.to_f64()))
-                / 2.0;
+            let bounds_padding_x = (image_visible_width.max(bounds.size.width) - image_visible_width.min(bounds.size.width)) / 2.;
+            let bounds_padding_y = (image_visible_height.max(bounds.size.height) - image_visible_height.min(bounds.size.height)) / 2.;
 
             // If we're selecting then we want to base coordinates off of
             // the mouse, otherwise we want to use image_crop
@@ -68,39 +64,25 @@ pub fn selection_canvas(
                 (
                     point(
                         (mouse_initial_pos.x + bounds.origin.x)
-                            .max(bounds.origin.x + px(bounds_padding_x as f32))
-                            .min(
-                                bounds.origin.x
-                                    + px((bounds_padding_x + image_visible_width) as f32),
-                            ),
+                            .max(bounds.origin.x + bounds_padding_x)
+                            .min(bounds.origin.x + bounds_padding_x + image_visible_width),
                         (mouse_initial_pos.y + bounds.origin.y)
-                            .max(bounds.origin.y + px(bounds_padding_y as f32))
-                            .min(
-                                bounds.origin.y
-                                    + px((bounds_padding_y + image_visible_height) as f32),
-                            ),
+                            .max(bounds.origin.y + bounds_padding_y)
+                            .min(bounds.origin.y + bounds_padding_y + image_visible_height),
                     ),
                     point(
                         mouse_pos
                             .x
-                            .max(bounds.origin.x + px(bounds_padding_x as f32))
-                            .min(
-                                bounds.origin.x
-                                    + px((bounds_padding_x + image_visible_width) as f32),
-                            ),
+                            .max(bounds.origin.x + bounds_padding_x)
+                            .min(bounds.origin.x + bounds_padding_x + image_visible_width),
                         mouse_pos
                             .y
-                            .max(bounds.origin.y + px(bounds_padding_y as f32))
-                            .min(
-                                bounds.origin.y
-                                    + px((bounds_padding_y + image_visible_height) as f32),
-                            ),
+                            .max(bounds.origin.y + bounds_padding_y)
+                            .min(bounds.origin.y + bounds_padding_y + image_visible_height),
                     ),
                 )
             } else {
-                let image_visible_scale = image_visible_scale as f32;
-                let bounds_padding_x = px(bounds_padding_x as f32);
-                let bounds_padding_y = px(bounds_padding_y as f32);
+                let image_visible_scale = image_visible_scale;
                 match *image_crop.read(cx) {
                     ImageCrop::Cropped {
                         crop_x,
@@ -135,16 +117,10 @@ pub fn selection_canvas(
                 mouse_initial.y.max(mouse_cur.y),
             );
 
-            let image_crop_x_value =
-                (origin.x.to_f64() - bounds.origin.x.to_f64() - bounds_padding_x)
-                    * image_visible_scale_inverse;
-            let image_crop_y_value =
-                (origin.y.to_f64() - bounds.origin.y.to_f64() - bounds_padding_y)
-                    * image_visible_scale_inverse;
-            let image_width_value =
-                (se_corner.x.to_f64() - origin.x.to_f64()) * image_visible_scale_inverse;
-            let image_height_value =
-                (se_corner.y.to_f64() - origin.y.to_f64()) * image_visible_scale_inverse;
+            let image_crop_x_value = (origin.x - bounds.origin.x - bounds_padding_x) * image_visible_scale_inverse;
+            let image_crop_y_value = (origin.y - bounds.origin.y - bounds_padding_y) * image_visible_scale_inverse;
+            let image_width_value = (se_corner.x - origin.x) * image_visible_scale_inverse;
+            let image_height_value = (se_corner.y - origin.y) * image_visible_scale_inverse;
 
             // let time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
             // println!("[{}] in canvas", time.as_millis());
@@ -157,18 +133,18 @@ pub fn selection_canvas(
                 let quad_bounds = Bounds::new(origin, size);
                 window.paint_quad(quad(
                     quad_bounds,
-                    px(0.0),
+                    px(0.),
                     rgba(0x709ebe7f),
-                    px(1.0),
+                    px(1.),
                     rgba(0x709ebeaf),
                     BorderStyle::default(),
                 ));
 
                 let new_image_crop = ImageCrop::Cropped {
-                    crop_x: (image_crop_x_value as f32).into(),
-                    crop_y: (image_crop_y_value as f32).into(),
-                    width: (image_width_value as f32).into(),
-                    height: (image_height_value as f32).into(),
+                    crop_x: image_crop_x_value,
+                    crop_y: image_crop_y_value,
+                    width: image_width_value,
+                    height: image_height_value,
                 };
                 if &new_image_crop != image_crop.read(cx) {
                     // println!("Updated crop: {:?}", new_image_crop);
@@ -177,12 +153,12 @@ pub fn selection_canvas(
             } else {
                 let occlusion_bounds = gpui::bounds(
                     point(
-                        px((bounds.origin.x.to_f64() + bounds_padding_x) as f32),
-                        px((bounds.origin.y.to_f64() + bounds_padding_y) as f32),
+                        bounds.origin.x + bounds_padding_x,
+                        bounds.origin.y + bounds_padding_y,
                     ),
                     size(
-                        px((bounds.size.width.to_f64() - bounds_padding_x * 2.0) as f32),
-                        px((bounds.size.height.to_f64() - bounds_padding_y * 2.0) as f32),
+                        bounds.size.width - bounds_padding_x * 2.,
+                        bounds.size.height - bounds_padding_y * 2.,
                     ),
                 );
                 let mut builder = PathBuilder::fill();
@@ -203,25 +179,25 @@ pub fn selection_canvas(
             if *is_selecting.read(cx) {
                 crop_x.update(cx, |input, cx| {
                     input.get_state().update(cx, |input, cx| {
-                        let value = (image_crop_x_value as u64).to_string();
+                        let value = u32::from(image_crop_x_value).to_string();
                         input.set_value(value, window, cx);
                     });
                 });
                 crop_y.update(cx, |input, cx| {
                     input.get_state().update(cx, |input, cx| {
-                        let value = (image_crop_y_value as u64).to_string();
+                        let value = u32::from(image_crop_y_value).to_string();
                         input.set_value(value, window, cx);
                     });
                 });
                 width.update(cx, |input, cx| {
                     input.get_state().update(cx, |input, cx| {
-                        let value = (image_width_value as u64).to_string();
+                        let value = u32::from(image_width_value).to_string();
                         input.set_value(value, window, cx);
                     });
                 });
                 height.update(cx, |input, cx| {
                     input.get_state().update(cx, |input, cx| {
-                        let value = (image_height_value as u64).to_string();
+                        let value = u32::from(image_height_value).to_string();
                         input.set_value(value, window, cx);
                     });
                 });

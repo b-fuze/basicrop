@@ -116,7 +116,7 @@ pub fn number_field(label: &str, state: Entity<InputState>) -> impl IntoElement 
             div()
                 .flex()
                 .flex_row()
-                .w(px(100.0))
+                .w(px(100.))
                 .child(NumberInput::new(&state).small()),
         )
 }

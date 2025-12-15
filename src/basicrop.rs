@@ -23,13 +23,13 @@ impl Basicrop {
         let height = cx.new(|cx| counter_input::CounterView::new(window, cx, 0));
         let is_selecting = cx.new(|_| false);
         let mouse_initial_pos = cx.new(|_| Point {
-            x: px(0.0),
-            y: px(0.0),
+            x: px(0.),
+            y: px(0.),
         });
         let mouse_pos = cx.new(|_| {
             CroppingMousePosition::Moved(Point {
-                x: px(0.0),
-                y: px(0.0),
+                x: px(0.),
+                y: px(0.),
             })
         });
         let image_path: Resource = image_path.into();
