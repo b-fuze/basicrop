@@ -13,6 +13,7 @@ pub struct BasicropState {
     pub mouse_pos: Entity<CroppingMousePosition>,
     pub is_selecting: Entity<bool>,
     pub image_crop: Entity<ImageCrop>,
+    pub image_crop_initial: Entity<ImageCrop>,
     pub image_path: Resource,
     pub dest_image_path: Entity<PathBuf>,
     pub image_saved_notification: Entity<()>,

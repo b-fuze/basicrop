@@ -34,10 +34,10 @@ impl Basicrop {
         });
         let image_path: Resource = image_path.into();
         let image_crop = cx.new(|_| ImageCrop::Uninitialized);
+        let image_crop_initial = cx.new(|_| ImageCrop::Uninitialized);
         let dest_image_path = cx.new(|_| dest_image_path);
         let image_saved_notification = cx.new(|cx| {
             cx.observe_self(|_, cx| {
-                println!("info: exiting");
                 cx.shutdown();
             })
             .detach();
@@ -148,6 +148,7 @@ impl Basicrop {
                 mouse_pos,
                 image_path,
                 image_crop,
+                image_crop_initial,
                 dest_image_path,
                 image_saved_notification,
             },
@@ -173,14 +174,19 @@ impl Render for Basicrop {
             (state.image_crop.read(cx), &image_asset)
         {
             let size = image.size(0);
+            let image_crop = ImageCrop::Cropped {
+                crop_x: px(0.),
+                crop_y: px(0.),
+                width: (u32::from(size.width) as f32).into(),
+                height: (u32::from(size.height) as f32).into(),
+            };
             state.image_crop.write(
                 cx,
-                ImageCrop::Cropped {
-                    crop_x: px(0.),
-                    crop_y: px(0.),
-                    width: (u32::from(size.width) as f32).into(),
-                    height: (u32::from(size.height) as f32).into(),
-                },
+                image_crop.clone(),
+            );
+            state.image_crop_initial.write(
+                cx,
+                image_crop,
             );
             state.height.update(cx, |input, cx| {
                 input.get_state().update(cx, |input, cx| {

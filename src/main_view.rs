@@ -191,6 +191,7 @@ pub fn render_main_view<T>(
                         .border_1()
                         .border_color(rgb(0xd0d0d0))
                         .on_click(|_, _, cx| {
+                            println!("info: image crop canceled");
                             cx.shutdown();
                         }),
                 )
@@ -202,10 +203,26 @@ pub fn render_main_view<T>(
                         .border_color(rgb(0xd0d0d0))
                         .on_click({
                             let image_crop = state.image_crop.clone();
+                            let image_crop_initial = state.image_crop_initial.clone();
                             let image_asset = image_asset.clone();
                             let dest_image_path = state.dest_image_path.clone();
                             let image_saved_notification = state.image_saved_notification.clone();
                             move |_, _, cx| {
+                                if image_crop.read(cx) == image_crop_initial.read(cx) {
+                                    println!("info: image not cropped");
+                                    let _ = image_saved_notification.write(cx, ());
+                                    return;
+                                }
+
+                                let image_crop_logged = image_crop.read(cx).clone().to_final().unwrap();
+                                println!(
+                                    "info: cropping image with inputs: x: {}, y: {}, width: {}, height: {}",
+                                    image_crop_logged.crop_x, 
+                                    image_crop_logged.crop_y, 
+                                    image_crop_logged.width, 
+                                    image_crop_logged.height, 
+                                );
+
                                 if let (Some(final_crop), LoadingImage::Image(image)) = (image_crop.read(cx).to_final(), &image_asset) {
                                     let image_size = image.size(0);
                                     let cropped_image_buf: Option<image::ImageBuffer<image::Rgba<_>, Vec<_>>> = image::ImageBuffer::from_raw(
@@ -244,7 +261,7 @@ pub fn render_main_view<T>(
                                                 let saved_image = match image_type.as_str() {
                                                     "png" | "webp" => {
                                                         image::save_buffer(
-                                                            dest_path,
+                                                            &dest_path,
                                                             cropped_image_buf.into_raw().as_slice(),
                                                             final_crop.width,
                                                             final_crop.height,
@@ -253,7 +270,7 @@ pub fn render_main_view<T>(
                                                     },
                                                     _ => {
                                                         image::save_buffer(
-                                                            dest_path,
+                                                            &dest_path,
                                                             image::DynamicImage::ImageRgba8(cropped_image_buf)
                                                                 .to_rgb8()
                                                                 .into_raw()
@@ -267,7 +284,7 @@ pub fn render_main_view<T>(
 
                                                 match saved_image {
                                                     Ok(_) => {
-                                                        println!("info: successfully saved crop image");
+                                                        println!("info: cropped and saved image successfully to: {}", dest_path.to_str().unwrap_or("[invalid_str]"));
                                                     },
                                                     Err(error) => {
                                                         eprintln!("error: failed to save cropped image: {:?}", error);
@@ -275,7 +292,7 @@ pub fn render_main_view<T>(
                                                 };
                                             }).await;
 
-                                            image_saved_notification.write(cx, ());
+                                            let _ = image_saved_notification.write(cx, ());
                                         }).detach();
                                     } else {
                                         eprintln!("error: can't retrieve image buffer for cropping");

@@ -36,7 +36,7 @@ impl CounterView {
         self.counter_input.clone()
     }
 
-    /// Subscribes to the number input and auto-detaches the subscription. Should not be
+    /// Subscribes to the number input and detaches the subscription. Should not be
     /// used if inputs are created on-demand
     pub fn subscribe<T: 'static>(
         &mut self,
