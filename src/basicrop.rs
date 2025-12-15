@@ -200,6 +200,8 @@ impl Render for Basicrop {
                     input.set_value(width, window, cx);
                 });
             });
+
+            println!("info: initialized image with dimensions: {}x{}", u32::from(size.width), u32::from(size.height));
         }
 
         render_main_view(state, image_asset, cx)

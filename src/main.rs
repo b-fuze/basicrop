@@ -59,7 +59,7 @@ fn main() {
             let ext_index = orig_path.rfind('.').unwrap_or(orig_path.len());
             orig_path.insert_str(ext_index, ".cropped");
             PathBuf::from(orig_path)
-        }
+        },
     };
 
     let app = Application::new().with_assets(gpui_component_assets::Assets);

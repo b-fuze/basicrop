@@ -216,7 +216,7 @@ pub fn render_main_view<T>(
 
                                 let image_crop_logged = image_crop.read(cx).clone().to_final().unwrap();
                                 println!(
-                                    "info: cropping image with inputs: x: {}, y: {}, width: {}, height: {}",
+                                    "info: cropping image with inputs: x: {}, y: {}, dimensions: {}x{}",
                                     image_crop_logged.crop_x, 
                                     image_crop_logged.crop_y, 
                                     image_crop_logged.width, 
