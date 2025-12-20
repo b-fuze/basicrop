@@ -5,8 +5,10 @@ mod image_crop;
 mod main_view;
 mod misc;
 mod selection_canvas;
+mod accept_crop;
 
 use basicrop::Basicrop;
+use accept_crop::on_accept_crop;
 use std::path::PathBuf;
 // use std::time::{SystemTime, UNIX_EPOCH};
 use gpui::{
@@ -14,6 +16,8 @@ use gpui::{
     WindowOptions, hsla, prelude::*, px, size,
 };
 use gpui_component::*;
+
+use crate::image_crop::CroppingState;
 
 const USAGE: &str =
 r#"USAGE
@@ -67,6 +71,20 @@ fn main() {
     app.run(|cx: &mut App| {
         gpui_component::init(cx);
         Theme::global_mut(cx).window_border = hsla(0., 0., 0., 0.6);
+
+        // Triggered by clicking the "Okay" button or pressing
+        // the "Enter" key on the selection canvas
+        cx.on_action(on_accept_crop);
+
+        // Global state for the app
+        cx.set_global(CroppingState {
+            image_crop: None,
+            image_initial: None,
+            image: None,
+            dest_path: dest_image_path.clone(),
+        });
+
+        println!("LINUX COMPOSITOR: '{}'", cx.compositor_name());
 
         let bounds = Bounds::centered(None, size(px(500.), px(500.)), cx);
         cx.open_window(

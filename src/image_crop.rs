@@ -1,4 +1,6 @@
-use gpui::Pixels;
+use std::path::PathBuf;
+use std::sync::Arc;
+use gpui::{Entity, Global, Pixels, RenderImage};
 
 #[derive(Clone, Debug)]
 pub enum ImageCrop {
@@ -91,3 +93,12 @@ impl PartialEq for ImageCrop {
         }
     }
 }
+
+pub struct CroppingState {
+    pub image_crop: Option<ImageCrop>,
+    pub image_initial: Option<ImageCrop>,
+    pub image: Option<Arc<RenderImage>>,
+    pub dest_path: PathBuf,
+}
+
+impl Global for CroppingState {}

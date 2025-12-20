@@ -1,10 +1,11 @@
 use crate::basicrop_state::BasicropState;
 use crate::counter_input;
-use crate::image_crop::ImageCrop;
+use crate::image_crop::{CroppingState, ImageCrop};
 use crate::main_view::render_main_view;
 use crate::misc::{CroppingMousePosition, LoadingImage};
 use gpui::{Context, ImageAssetLoader, Point, Resource, Window, prelude::*, px};
 use std::path::PathBuf;
+use std::sync::Arc;
 
 pub struct Basicrop {
     state: BasicropState,
@@ -186,7 +187,7 @@ impl Render for Basicrop {
             );
             state.image_crop_initial.write(
                 cx,
-                image_crop,
+                image_crop.clone(),
             );
             state.height.update(cx, |input, cx| {
                 input.get_state().update(cx, |input, cx| {
@@ -199,6 +200,11 @@ impl Render for Basicrop {
                     let width = u32::from(size.width).to_string();
                     input.set_value(width, window, cx);
                 });
+            });
+            cx.update_global(|cropping_state: &mut CroppingState, _| {
+                cropping_state.image_initial = Some(image_crop.clone());
+                cropping_state.image_crop = Some(image_crop);
+                cropping_state.image = Some(Arc::clone(image));
             });
 
             println!("info: initialized image with dimensions: {}x{}", u32::from(size.width), u32::from(size.height));

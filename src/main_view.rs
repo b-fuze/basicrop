@@ -95,6 +95,7 @@ pub fn render_main_view<T>(
         .child(
             div()
                 .id("image_viewport")
+                .focusable()
                 .flex()
                 .flex_col()
                 .justify_center()
@@ -169,6 +170,11 @@ pub fn render_main_view<T>(
                     .on_mouse_up_out(gpui::MouseButton::Left, {
                         let is_selecting = state.is_selecting.clone();
                         move |_, _, cx| is_selecting.write(cx, false)
+                    })
+                    .on_key_up({
+                        |evt, _window, _app| {
+                            println!("evt: '{}'", evt.keystroke.key);
+                        }
                     })
         )
         .child(
