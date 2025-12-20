@@ -4,6 +4,7 @@ use crate::misc::CroppingMousePosition;
 use gpui::{Entity, Pixels, Point, Resource};
 use std::path::PathBuf;
 
+#[derive(Debug, Clone)]
 pub struct BasicropState {
     pub crop_x: Entity<CounterView>,
     pub crop_y: Entity<CounterView>,
