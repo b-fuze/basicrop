@@ -30,6 +30,7 @@ pub fn render_main_view<T>(
         .child(number_field("Height:", state.height.read(cx).get_state()));
 
     cx.bind_keys([gpui::KeyBinding::new("enter", crate::actions::CropImage, None)]);
+    cx.bind_keys([gpui::KeyBinding::new("escape", crate::actions::CancelCrop, None)]);
 
     // Main window root element
     div()
@@ -218,6 +219,10 @@ pub fn render_main_view<T>(
             move |_: &crate::actions::CropImage, _, cx| {
                 finalize_crop(cx, &state, &image_asset)
             }
+        })
+        .on_action(|_: &crate::actions::CancelCrop, _, cx| {
+            println!("info: image crop canceled via Escape");
+            cx.shutdown();
         })
 }
 
