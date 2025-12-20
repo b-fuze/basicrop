@@ -29,8 +29,12 @@ pub fn render_main_view<T>(
         .child(number_field("Width:", state.width.read(cx).get_state()))
         .child(number_field("Height:", state.height.read(cx).get_state()));
 
+    cx.bind_keys([gpui::KeyBinding::new("enter", crate::actions::CropImage, None)]);
+
     // Main window root element
     div()
+        .id("main-window-root-element")
+        .focusable()
         .flex()
         .flex_col()
         .bg(rgb(0xfafafa))
@@ -208,6 +212,13 @@ pub fn render_main_view<T>(
                         }),
                 ),
         )
+        .on_action({
+            let image_asset = image_asset.clone();
+            let state = state.clone();
+            move |_: &crate::actions::CropImage, _, cx| {
+                finalize_crop(cx, &state, &image_asset)
+            }
+        })
 }
 
 fn finalize_crop(cx: &mut gpui::App, state: &BasicropState, image_asset: &LoadingImage) {
