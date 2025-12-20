@@ -1,4 +1,4 @@
 use gpui::actions;
 
-actions!(actions_namespace, [CropImage]);
-actions!(actions_namespace, [CancelCrop]);
+actions!(crop, [CropImage]);
+actions!(crop, [CancelCrop]);

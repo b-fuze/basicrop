@@ -1,8 +1,11 @@
+use crate::actions::{CancelCrop, CropImage};
 use crate::counter_input::number_field;
 use crate::misc::LoadingImage;
 use crate::selection_canvas::selection_canvas;
 use crate::{basicrop_state::BasicropState, misc::CroppingMousePosition};
-use gpui::{Context, Edges, IntoElement, ObjectFit, Styled, div, img, prelude::*, px, rgb};
+use gpui::{
+    Context, Edges, IntoElement, KeyBinding, ObjectFit, Styled, div, img, prelude::*, px, rgb,
+};
 use gpui_component::IconName;
 use gpui_component::{StyledExt, button::Button};
 
@@ -29,16 +32,8 @@ pub fn render_main_view<T>(
         .child(number_field("Width:", state.width.read(cx).get_state()))
         .child(number_field("Height:", state.height.read(cx).get_state()));
 
-    cx.bind_keys([gpui::KeyBinding::new(
-        "enter",
-        crate::actions::CropImage,
-        None,
-    )]);
-    cx.bind_keys([gpui::KeyBinding::new(
-        "escape",
-        crate::actions::CancelCrop,
-        None,
-    )]);
+    cx.bind_keys([KeyBinding::new("enter", CropImage, None)]);
+    cx.bind_keys([KeyBinding::new("escape", CancelCrop, None)]);
 
     // Main window root element
     div()
@@ -214,9 +209,9 @@ pub fn render_main_view<T>(
         .on_action({
             let image_asset = image_asset.clone();
             let state = state.clone();
-            move |_: &crate::actions::CropImage, _, cx| finalize_crop(cx, &state, &image_asset)
+            move |_: &CropImage, _, cx| finalize_crop(cx, &state, &image_asset)
         })
-        .on_action(|_: &crate::actions::CancelCrop, _, cx| {
+        .on_action(|_: &CancelCrop, _, cx| {
             println!("info: image crop canceled via Escape");
             cx.shutdown();
         })
@@ -244,88 +239,90 @@ fn finalize_crop(cx: &mut gpui::App, state: &BasicropState, image_asset: &Loadin
         image_crop_logged.height,
     );
 
-    if let (Some(final_crop), LoadingImage::Image(image)) =
+    let (Some(final_crop), LoadingImage::Image(image)) =
         (image_crop.read(cx).to_final(), &image_asset)
-    {
-        let image_size = image.size(0);
-        let cropped_image_buf: Option<image::ImageBuffer<image::Rgba<_>, Vec<_>>> =
-            image::ImageBuffer::from_raw(
-                image_size.width.into(),
-                image_size.height.into(),
-                image.as_bytes(0).unwrap().to_vec(),
-            );
-
-        if let Some(mut cropped_image_buf) = cropped_image_buf {
-            let dest_path = dest_image_path.read(cx).clone();
-            let image_saved_notification = image_saved_notification.clone();
-            cx.spawn(async move |cx: &mut gpui::AsyncApp| {
-                cx.background_spawn(async move {
-                    let mut cropped_image_buf = image::imageops::crop(
-                        &mut cropped_image_buf,
-                        final_crop.crop_x,
-                        final_crop.crop_y,
-                        final_crop.width,
-                        final_crop.height,
-                    )
-                    .to_image();
-
-                    // Convert from RGBA to BGRA.
-                    for pixel in cropped_image_buf.as_chunks_mut::<4>().0 {
-                        pixel.swap(0, 2);
-                    }
-
-                    let image_type = dest_path
-                        .components()
-                        .map(|component| component.as_os_str().to_str().unwrap().to_string())
-                        .next_back()
-                        .unwrap()
-                        .rsplit('.')
-                        .next_back()
-                        .unwrap()
-                        .to_lowercase();
-                    let saved_image = match image_type.as_str() {
-                        "png" | "webp" => image::save_buffer(
-                            &dest_path,
-                            cropped_image_buf.into_raw().as_slice(),
-                            final_crop.width,
-                            final_crop.height,
-                            image::ExtendedColorType::Rgba8,
-                        ),
-                        _ => image::save_buffer(
-                            &dest_path,
-                            image::DynamicImage::ImageRgba8(cropped_image_buf)
-                                .to_rgb8()
-                                .into_raw()
-                                .as_slice(),
-                            final_crop.width,
-                            final_crop.height,
-                            image::ExtendedColorType::Rgb8,
-                        ),
-                    };
-
-                    match saved_image {
-                        Ok(_) => {
-                            println!(
-                                "info: cropped and saved image successfully to: {}",
-                                dest_path.to_str().unwrap_or("[invalid_str]")
-                            );
-                        }
-                        Err(error) => {
-                            eprintln!("error: failed to save cropped image: {:?}", error);
-                        }
-                    };
-                })
-                .await;
-
-                let _ = image_saved_notification.write(cx, ());
-            })
-            .detach();
-        } else {
-            eprintln!("error: can't retrieve image buffer for cropping");
-            cx.shutdown();
-        }
-    } else {
+    else {
         eprintln!("warn: can't save file due to uninitialized image");
         cx.shutdown();
-    }
+        return;
+    };
+
+    let image_size = image.size(0);
+    let cropped_image_buf: Option<image::ImageBuffer<image::Rgba<_>, Vec<_>>> =
+        image::ImageBuffer::from_raw(
+            image_size.width.into(),
+            image_size.height.into(),
+            image.as_bytes(0).unwrap().to_vec(),
+        );
+
+    let Some(mut cropped_image_buf) = cropped_image_buf else {
+        eprintln!("error: can't retrieve image buffer for cropping");
+        cx.shutdown();
+        return;
+    };
+
+    let dest_path = dest_image_path.read(cx).clone();
+    let image_saved_notification = image_saved_notification.clone();
+    cx.spawn(async move |cx: &mut gpui::AsyncApp| {
+        cx.background_spawn(async move {
+            let mut cropped_image_buf = image::imageops::crop(
+                &mut cropped_image_buf,
+                final_crop.crop_x,
+                final_crop.crop_y,
+                final_crop.width,
+                final_crop.height,
+            )
+            .to_image();
+
+            // Convert from RGBA to BGRA.
+            for pixel in cropped_image_buf.as_chunks_mut::<4>().0 {
+                pixel.swap(0, 2);
+            }
+
+            let image_type = dest_path
+                .components()
+                .map(|component| component.as_os_str().to_str().unwrap().to_string())
+                .next_back()
+                .unwrap()
+                .rsplit('.')
+                .next_back()
+                .unwrap()
+                .to_lowercase();
+            let saved_image = match image_type.as_str() {
+                "png" | "webp" => image::save_buffer(
+                    &dest_path,
+                    cropped_image_buf.into_raw().as_slice(),
+                    final_crop.width,
+                    final_crop.height,
+                    image::ExtendedColorType::Rgba8,
+                ),
+                _ => image::save_buffer(
+                    &dest_path,
+                    image::DynamicImage::ImageRgba8(cropped_image_buf)
+                        .to_rgb8()
+                        .into_raw()
+                        .as_slice(),
+                    final_crop.width,
+                    final_crop.height,
+                    image::ExtendedColorType::Rgb8,
+                ),
+            };
+
+            match saved_image {
+                Ok(_) => {
+                    println!(
+                        "info: cropped and saved image successfully to: {}",
+                        dest_path.to_str().unwrap_or("[invalid_str]")
+                    );
+                }
+                Err(error) => {
+                    eprintln!("error: failed to save cropped image: {:?}", error);
+                }
+            };
+        })
+        .await;
+
+        let _ = image_saved_notification.write(cx, ());
+    })
+    .detach();
 }
