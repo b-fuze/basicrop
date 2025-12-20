@@ -49,13 +49,17 @@ pub fn selection_canvas(
 
             // We need this because only the canvas' height might not match the
             // image's height, but the width will always match
-            let bounds_padding_x = (image_visible_width.max(bounds.size.width) - image_visible_width.min(bounds.size.width)) / 2.;
-            let bounds_padding_y = (image_visible_height.max(bounds.size.height) - image_visible_height.min(bounds.size.height)) / 2.;
+            let bounds_padding_x = (image_visible_width.max(bounds.size.width)
+                - image_visible_width.min(bounds.size.width))
+                / 2.;
+            let bounds_padding_y = (image_visible_height.max(bounds.size.height)
+                - image_visible_height.min(bounds.size.height))
+                / 2.;
 
             // If we're selecting then we want to base coordinates off of
             // the mouse, otherwise we want to use image_crop
             let (mouse_initial, mouse_cur) = if is_selecting_value {
-                let mouse_initial_pos = mouse_initial_pos.read(cx).clone();
+                let mouse_initial_pos = *mouse_initial_pos.read(cx);
                 let mouse_pos = match mouse_pos.read(cx) {
                     CroppingMousePosition::Initial(pos) => *pos + bounds.origin,
                     CroppingMousePosition::Moved(pos) => *pos,
@@ -117,8 +121,10 @@ pub fn selection_canvas(
                 mouse_initial.y.max(mouse_cur.y),
             );
 
-            let image_crop_x_value = (origin.x - bounds.origin.x - bounds_padding_x) * image_visible_scale_inverse;
-            let image_crop_y_value = (origin.y - bounds.origin.y - bounds_padding_y) * image_visible_scale_inverse;
+            let image_crop_x_value =
+                (origin.x - bounds.origin.x - bounds_padding_x) * image_visible_scale_inverse;
+            let image_crop_y_value =
+                (origin.y - bounds.origin.y - bounds_padding_y) * image_visible_scale_inverse;
             let image_width_value = (se_corner.x - origin.x) * image_visible_scale_inverse;
             let image_height_value = (se_corner.y - origin.y) * image_visible_scale_inverse;
 

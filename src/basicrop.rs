@@ -180,14 +180,8 @@ impl Render for Basicrop {
                 width: (u32::from(size.width) as f32).into(),
                 height: (u32::from(size.height) as f32).into(),
             };
-            state.image_crop.write(
-                cx,
-                image_crop.clone(),
-            );
-            state.image_crop_initial.write(
-                cx,
-                image_crop,
-            );
+            state.image_crop.write(cx, image_crop.clone());
+            state.image_crop_initial.write(cx, image_crop);
             state.height.update(cx, |input, cx| {
                 input.get_state().update(cx, |input, cx| {
                     let height = u32::from(size.height).to_string();
@@ -201,7 +195,11 @@ impl Render for Basicrop {
                 });
             });
 
-            println!("info: initialized image with dimensions: {}x{}", u32::from(size.width), u32::from(size.height));
+            println!(
+                "info: initialized image with dimensions: {}x{}",
+                u32::from(size.width),
+                u32::from(size.height)
+            );
         }
 
         render_main_view(state, image_asset, cx)

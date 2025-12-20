@@ -16,8 +16,7 @@ use gpui::{
 };
 use gpui_component::*;
 
-const USAGE: &str =
-r#"USAGE
+const USAGE: &str = r#"USAGE
     basicrop [-h|--help]
              source-image [output-image]
 
@@ -41,7 +40,7 @@ DESCRIPTION
 fn main() {
     let mut args: Vec<String> = std::env::args().skip(1).take(2).collect();
 
-    if args.len() < 1 {
+    if args.is_empty() {
         eprintln!("error: missing source-image\n");
         eprint!("{USAGE}");
         std::process::exit(1);
@@ -53,15 +52,16 @@ fn main() {
     }
 
     let image_path = PathBuf::from(args.remove(0));
-    let dest_image_path: PathBuf = match args.into_iter().next() {
-        Some(path) => path.into(),
-        None => {
+    let dest_image_path = args
+        .into_iter()
+        .next()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
             let mut orig_path = image_path.to_str().unwrap().to_owned();
             let ext_index = orig_path.rfind('.').unwrap_or(orig_path.len());
             orig_path.insert_str(ext_index, ".cropped");
             PathBuf::from(orig_path)
-        },
-    };
+        });
 
     let app = Application::new().with_assets(gpui_component_assets::Assets);
 
