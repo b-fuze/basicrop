@@ -53,10 +53,10 @@ impl ImageCrop {
                 width,
                 height,
             } => Some(InitializedImageCrop {
-                crop_x: crop_x.clone(),
-                crop_y: crop_y.clone(),
-                width: width.clone(),
-                height: height.clone(),
+                crop_x: *crop_x,
+                crop_y: *crop_y,
+                width: *width,
+                height: *height,
             }),
             ImageCrop::Uninitialized => None,
         }

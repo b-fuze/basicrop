@@ -48,8 +48,8 @@ impl CounterView {
         cx.subscribe_in(
             &self.counter_input,
             window,
-            move |_, input, evt: &InputEvent, _, cx| match evt {
-                InputEvent::Change => {
+            move |_, input, evt: &InputEvent, _, cx| {
+                if let InputEvent::Change = evt {
                     let value = input.read(cx).value().parse::<u32>();
                     if let (Ok(value), Some(initialized_image_crop)) =
                         (value, image_crop.read(cx).to_initialized())
@@ -57,7 +57,6 @@ impl CounterView {
                         on_event(value, initialized_image_crop, cx);
                     }
                 }
-                _ => {}
             },
         )
         .detach();
@@ -70,14 +69,11 @@ impl CounterView {
         _: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        match event {
-            InputEvent::Change => {
-                let text = state.read(cx).value();
-                if let Ok(value) = text.parse::<i32>() {
-                    self.counter_value = value;
-                }
+        if let InputEvent::Change = event {
+            let text = state.read(cx).value();
+            if let Ok(value) = text.parse::<i32>() {
+                self.counter_value = value;
             }
-            _ => {}
         }
     }
 

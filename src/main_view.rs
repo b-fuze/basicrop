@@ -29,8 +29,16 @@ pub fn render_main_view<T>(
         .child(number_field("Width:", state.width.read(cx).get_state()))
         .child(number_field("Height:", state.height.read(cx).get_state()));
 
-    cx.bind_keys([gpui::KeyBinding::new("enter", crate::actions::CropImage, None)]);
-    cx.bind_keys([gpui::KeyBinding::new("escape", crate::actions::CancelCrop, None)]);
+    cx.bind_keys([gpui::KeyBinding::new(
+        "enter",
+        crate::actions::CropImage,
+        None,
+    )]);
+    cx.bind_keys([gpui::KeyBinding::new(
+        "escape",
+        crate::actions::CancelCrop,
+        None,
+    )]);
 
     // Main window root element
     div()
@@ -65,36 +73,36 @@ pub fn render_main_view<T>(
                 .border_color(rgb(0xd0d0d0))
                 .child(fields)
                 .child(
-                    div()
-                        .flex()
-                        .flex_row()
-                        .justify_end()
-                        .w(px(100.))
-                        .child(
-                            Button::new("reset-btn")
-                                .label("Reset")
-                                .border_1()
-                                .border_color(rgb(0xd0d0d0))
-                                .on_click({
-                                    let fields = [state.crop_x.clone(), state.crop_y.clone(), state.width.clone(), state.height.clone()];
-                                    let new_values = match &image_asset {
-                                        LoadingImage::Image(image) => {
-                                            let size = image.size(0);
-                                            [0u32, 0u32, size.width.into(), size.height.into()]
-                                        },
-                                        _ => [0u32, 0u32, 0u32, 0u32],
-                                    };
-                                    move |_, window, cx| {
-                                        for (field, value) in fields.iter().zip(new_values) {
-                                            field.update(cx, |input, cx| {
-                                                input.get_state().update(cx, |input, cx| {
-                                                    input.set_value(value.to_string(), window, cx);
-                                                });
-                                            });
-                                        }
+                    div().flex().flex_row().justify_end().w(px(100.)).child(
+                        Button::new("reset-btn")
+                            .label("Reset")
+                            .border_1()
+                            .border_color(rgb(0xd0d0d0))
+                            .on_click({
+                                let fields = [
+                                    state.crop_x.clone(),
+                                    state.crop_y.clone(),
+                                    state.width.clone(),
+                                    state.height.clone(),
+                                ];
+                                let new_values = match &image_asset {
+                                    LoadingImage::Image(image) => {
+                                        let size = image.size(0);
+                                        [0u32, 0u32, size.width.into(), size.height.into()]
                                     }
-                                }),
-                        )
+                                    _ => [0u32, 0u32, 0u32, 0u32],
+                                };
+                                move |_, window, cx| {
+                                    for (field, value) in fields.iter().zip(new_values) {
+                                        field.update(cx, |input, cx| {
+                                            input.get_state().update(cx, |input, cx| {
+                                                input.set_value(value.to_string(), window, cx);
+                                            });
+                                        });
+                                    }
+                                }
+                            }),
+                    ),
                 ),
         )
         .child(
@@ -109,25 +117,15 @@ pub fn render_main_view<T>(
                 .w_full()
                 .map({
                     let image_asset = image_asset.clone();
-                    move |this| {
-                        let this = match image_asset.clone() {
-                            LoadingImage::Image(image) => {
-                                this.child(
-                                    img(image)
-                                        .absolute()
-                                        .size_full()
-                                        .object_fit(ObjectFit::Contain)
-                                )
-                            },
-                            LoadingImage::Failed => {
-                                this.child("Failed to load image")
-                            },
-                            LoadingImage::Loading => {
-                                this.child("Loading image...")
-                            },
-                        };
-
-                        this
+                    move |this| match image_asset.clone() {
+                        LoadingImage::Image(image) => this.child(
+                            img(image)
+                                .absolute()
+                                .size_full()
+                                .object_fit(ObjectFit::Contain),
+                        ),
+                        LoadingImage::Failed => this.child("Failed to load image"),
+                        LoadingImage::Loading => this.child("Loading image..."),
                     }
                 })
                 .child(
@@ -142,39 +140,39 @@ pub fn render_main_view<T>(
                         state.mouse_pos.clone(),
                         state.mouse_initial_pos.clone(),
                     )
-                        .absolute()
-                        .size_full()
+                    .absolute()
+                    .size_full(),
                 )
-                    .on_drag((), {
-                        let is_selecting = state.is_selecting.clone();
-                        let mouse_pos = state.mouse_pos.clone();
-                        let mouse_initial_pos = state.mouse_initial_pos.clone();
-                        move |_, point, _window, cx| {
-                            // `point` is relative to this element's bounds
-                            mouse_pos.write(cx, CroppingMousePosition::Initial(point));
-                            mouse_initial_pos.write(cx, point);
-                            is_selecting.write(cx, true);
+                .on_drag((), {
+                    let is_selecting = state.is_selecting.clone();
+                    let mouse_pos = state.mouse_pos.clone();
+                    let mouse_initial_pos = state.mouse_initial_pos.clone();
+                    move |_, point, _window, cx| {
+                        // `point` is relative to this element's bounds
+                        mouse_pos.write(cx, CroppingMousePosition::Initial(point));
+                        mouse_initial_pos.write(cx, point);
+                        is_selecting.write(cx, true);
 
-                            cx.new(|_| gpui::Empty)
-                        }
-                    })
-                    .on_drag_move::<()>({
-                        let mouse_pos = state.mouse_pos.clone();
-                        move |evt, _window, cx| {
-                            let position = evt.event.position;
-                            mouse_pos.write(cx, CroppingMousePosition::Moved(position));
-                        }
-                    })
-                    .on_drop::<()>({
-                        let is_selecting = state.is_selecting.clone();
-                        move |_, _window, cx| {
-                            is_selecting.write(cx, false);
-                        }
-                    })
-                    .on_mouse_up_out(gpui::MouseButton::Left, {
-                        let is_selecting = state.is_selecting.clone();
-                        move |_, _, cx| is_selecting.write(cx, false)
-                    })
+                        cx.new(|_| gpui::Empty)
+                    }
+                })
+                .on_drag_move::<()>({
+                    let mouse_pos = state.mouse_pos.clone();
+                    move |evt, _window, cx| {
+                        let position = evt.event.position;
+                        mouse_pos.write(cx, CroppingMousePosition::Moved(position));
+                    }
+                })
+                .on_drop::<()>({
+                    let is_selecting = state.is_selecting.clone();
+                    move |_, _window, cx| {
+                        is_selecting.write(cx, false);
+                    }
+                })
+                .on_mouse_up_out(gpui::MouseButton::Left, {
+                    let is_selecting = state.is_selecting.clone();
+                    move |_, _, cx| is_selecting.write(cx, false)
+                }),
         )
         .child(
             div()
@@ -216,9 +214,7 @@ pub fn render_main_view<T>(
         .on_action({
             let image_asset = image_asset.clone();
             let state = state.clone();
-            move |_: &crate::actions::CropImage, _, cx| {
-                finalize_crop(cx, &state, &image_asset)
-            }
+            move |_: &crate::actions::CropImage, _, cx| finalize_crop(cx, &state, &image_asset)
         })
         .on_action(|_: &crate::actions::CancelCrop, _, cx| {
             println!("info: image crop canceled via Escape");
@@ -235,7 +231,7 @@ fn finalize_crop(cx: &mut gpui::App, state: &BasicropState, image_asset: &Loadin
 
     if image_crop.read(cx) == image_crop_initial.read(cx) {
         println!("info: image not cropped");
-        let _ = image_saved_notification.write(cx, ());
+        image_saved_notification.write(cx, ());
         return;
     }
 
@@ -281,10 +277,10 @@ fn finalize_crop(cx: &mut gpui::App, state: &BasicropState, image_asset: &Loadin
                     let image_type = dest_path
                         .components()
                         .map(|component| component.as_os_str().to_str().unwrap().to_string())
-                        .last()
+                        .next_back()
                         .unwrap()
                         .rsplit('.')
-                        .last()
+                        .next_back()
                         .unwrap()
                         .to_lowercase();
                     let saved_image = match image_type.as_str() {
