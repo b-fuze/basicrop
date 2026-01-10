@@ -177,14 +177,8 @@ pub fn render_main_view<T>(
                 })
                 .on_key_up({
                     |evt, _window, cx| {
-                        match evt.keystroke.key.as_str() {
-                            "enter" => {
-                                cx.defer(|cx| cx.dispatch_action(&AcceptCrop));
-                            }
-                            "escape" => {
-                                cx.defer(|cx| cx.dispatch_action(&CancelCrop));
-                            }
-                            _ => {}
+                        if evt.keystroke.key.as_str() == "enter" {
+                            cx.defer(|cx| cx.dispatch_action(&AcceptCrop));
                         };
                     }
                 }),

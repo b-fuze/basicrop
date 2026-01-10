@@ -12,8 +12,8 @@ use basicrop::Basicrop;
 use std::path::PathBuf;
 // use std::time::{SystemTime, UNIX_EPOCH};
 use gpui::{
-    App, Application, Bounds, Size, TitlebarOptions, WindowBounds, WindowDecorations,
-    WindowOptions, hsla, prelude::*, px, size,
+    App, Application, Bounds, KeyBinding, Size, TitlebarOptions, WindowBounds,
+    WindowDecorations, WindowOptions, hsla, prelude::*, px, size,
 };
 use gpui_component::*;
 
@@ -71,6 +71,7 @@ fn main() {
     app.run(|cx: &mut App| {
         gpui_component::init(cx);
         Theme::global_mut(cx).window_border = hsla(0., 0., 0., 0.6);
+        cx.bind_keys([KeyBinding::new("escape", CancelCrop, None)]);
 
         // Triggered by clicking the "Okay" button or pressing
         // the "Enter" key on the selection canvas
