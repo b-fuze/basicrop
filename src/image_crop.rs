@@ -1,6 +1,6 @@
+use gpui::{Global, Pixels, RenderImage};
 use std::path::PathBuf;
 use std::sync::Arc;
-use gpui::{Entity, Global, Pixels, RenderImage};
 
 #[derive(Clone, Debug)]
 pub enum ImageCrop {

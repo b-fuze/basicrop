@@ -12,12 +12,7 @@ pub struct Basicrop {
 }
 
 impl Basicrop {
-    pub fn new(
-        window: &mut Window,
-        cx: &mut Context<Self>,
-        image_path: PathBuf,
-        dest_image_path: PathBuf,
-    ) -> Self {
+    pub fn new(window: &mut Window, cx: &mut Context<Self>, image_path: PathBuf) -> Self {
         let crop_x = cx.new(|cx| counter_input::CounterView::new(window, cx, 0));
         let crop_y = cx.new(|cx| counter_input::CounterView::new(window, cx, 0));
         let width = cx.new(|cx| counter_input::CounterView::new(window, cx, 0));
@@ -36,13 +31,6 @@ impl Basicrop {
         let image_path: Resource = image_path.into();
         let image_crop = cx.new(|_| ImageCrop::Uninitialized);
         let image_crop_initial = cx.new(|_| ImageCrop::Uninitialized);
-        let dest_image_path = cx.new(|_| dest_image_path);
-        let image_saved_notification = cx.new(|cx| {
-            cx.observe_self(|_, cx| {
-                cx.shutdown();
-            })
-            .detach();
-        });
 
         // Handlers for text input updates
         crop_x.update(cx, {
@@ -150,8 +138,6 @@ impl Basicrop {
                 image_path,
                 image_crop,
                 image_crop_initial,
-                dest_image_path,
-                image_saved_notification,
             },
         }
     }
@@ -181,14 +167,8 @@ impl Render for Basicrop {
                 width: (u32::from(size.width) as f32).into(),
                 height: (u32::from(size.height) as f32).into(),
             };
-            state.image_crop.write(
-                cx,
-                image_crop.clone(),
-            );
-            state.image_crop_initial.write(
-                cx,
-                image_crop.clone(),
-            );
+            state.image_crop.write(cx, image_crop.clone());
+            state.image_crop_initial.write(cx, image_crop.clone());
             state.height.update(cx, |input, cx| {
                 input.get_state().update(cx, |input, cx| {
                     let height = u32::from(size.height).to_string();
@@ -207,7 +187,11 @@ impl Render for Basicrop {
                 cropping_state.image = Some(Arc::clone(image));
             });
 
-            println!("info: initialized image with dimensions: {}x{}", u32::from(size.width), u32::from(size.height));
+            println!(
+                "info: initialized image with dimensions: {}x{}",
+                u32::from(size.width),
+                u32::from(size.height)
+            );
         }
 
         render_main_view(state, image_asset, cx)
