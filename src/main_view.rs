@@ -224,8 +224,8 @@ fn finalize_crop(cx: &mut gpui::App, state: &BasicropState, image_asset: &Loadin
     let dest_image_path = state.dest_image_path.clone();
     let image_saved_notification = state.image_saved_notification.clone();
 
-    if image_crop.read(cx) == image_crop_initial.read(cx) {
-        println!("info: image not cropped");
+    if image_crop.read(cx) == image_crop_initial.read(cx) && !state.force {
+        println!("info: image not cropped and --force not specified");
         image_saved_notification.write(cx, ());
         return;
     }

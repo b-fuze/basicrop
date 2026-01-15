@@ -16,6 +16,7 @@ impl Basicrop {
         cx: &mut Context<Self>,
         image_path: PathBuf,
         dest_image_path: PathBuf,
+        force: bool,
     ) -> Self {
         let crop_x = cx.new(|cx| counter_input::CounterView::new(window, cx, 0));
         let crop_y = cx.new(|cx| counter_input::CounterView::new(window, cx, 0));
@@ -151,6 +152,7 @@ impl Basicrop {
                 image_crop_initial,
                 dest_image_path,
                 image_saved_notification,
+                force,
             },
         }
     }

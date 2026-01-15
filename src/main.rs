@@ -37,35 +37,67 @@ DESCRIPTION
       TIFF  WebP
 "#;
 
+argyle::argue! {
+    /// basicrop is a basic program to crop images. It will open
+    /// the source-image in a window that allows cropping by
+    /// clicking and dragging anywhere on the image. After clicking
+    /// the "Ok" button it will save the cropped image to
+    /// output-image if provided, or to the same path as
+    /// source-image with .cropped appended to the file name before
+    /// the file extension.
+    ///
+    /// Supported image formats:
+    ///   AVIF  BMP      Farbfeld
+    ///   GIF   HDR      ICO
+    ///   JPEG  OpenEXR  PNG
+    ///   PNM   QOI      TGA
+    ///   TIFF  WebP
+    Argument,
+    ArgumentIter,
+    Help  "-h" "--help",
+    Force "-f" "--force",
+}
+
 fn main() {
-    let mut args: Vec<String> = std::env::args().skip(1).take(2).collect();
+    let mut force = false;
+    let mut image_path: Option<PathBuf> = None;
+    let mut dest_image_path: Option<PathBuf> = None;
 
-    if args.is_empty() {
-        eprintln!("error: missing source-image\n");
-        eprint!("{USAGE}");
-        std::process::exit(1);
+    for arg in Argument::args_os() {
+        match arg {
+            Argument::Help => print_help(),
+            Argument::Force => {
+                force = true;
+            }
+            Argument::Other(v) if image_path.is_none() => {
+                image_path = Some(v.into());
+            }
+            Argument::Other(v) if dest_image_path.is_none() => {
+                dest_image_path = Some(v.into());
+            }
+            Argument::Other(v) => {
+                panic!("Encountered extra argument: {}", v);
+            }
+            Argument::OtherOs(v) => {
+                panic!("Encountered invalid UTF-8 string: {}", v.to_string_lossy());
+            }
+        }
     }
 
-    if args[0] == "-h" || args[0] == "--help" {
-        eprint!("{USAGE}");
-        std::process::exit(0);
-    }
-
-    let image_path = PathBuf::from(args.remove(0));
-    let dest_image_path = args
-        .into_iter()
-        .next()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| {
-            let mut orig_path = image_path.to_str().unwrap().to_owned();
-            let ext_index = orig_path.rfind('.').unwrap_or(orig_path.len());
-            orig_path.insert_str(ext_index, ".cropped");
-            PathBuf::from(orig_path)
-        });
+    let Some(image_path) = image_path else {
+        eprintln!("No image path specified");
+        panic!("{USAGE}");
+    };
+    let dest_image_path = dest_image_path.unwrap_or_else(|| {
+        let mut orig_path = image_path.to_str().unwrap().to_owned();
+        let ext_index = orig_path.rfind('.').unwrap_or(orig_path.len());
+        orig_path.insert_str(ext_index, ".cropped");
+        PathBuf::from(orig_path)
+    });
 
     let app = Application::new().with_assets(gpui_component_assets::Assets);
 
-    app.run(|cx: &mut App| {
+    app.run(move |cx: &mut App| {
         gpui_component::init(cx);
         Theme::global_mut(cx).window_border = hsla(0., 0., 0., 0.6);
 
@@ -88,10 +120,16 @@ fn main() {
                 ..Default::default()
             },
             |window, cx| {
-                let view = cx.new(|cx| Basicrop::new(window, cx, image_path, dest_image_path));
+                let view =
+                    cx.new(|cx| Basicrop::new(window, cx, image_path, dest_image_path, force));
                 cx.new(|cx| Root::new(view, window, cx))
             },
         )
         .unwrap();
     });
+}
+
+fn print_help() {
+    eprintln!("{USAGE}");
+    std::process::exit(0);
 }
