@@ -18,4 +18,5 @@ pub struct BasicropState {
     pub image_path: Resource,
     pub dest_image_path: Entity<PathBuf>,
     pub image_saved_notification: Entity<()>,
+    pub force: bool,
 }

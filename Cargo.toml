@@ -9,3 +9,4 @@ image = "0.25.1" # Should be the same one used by GPUI
 gpui-component = "0.5.0-preview1"
 # Optional, for default bundled assets
 gpui-component-assets = "0.5.0-preview1"
+argyle = "0.14.0"
